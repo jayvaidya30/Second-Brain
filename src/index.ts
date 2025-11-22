@@ -1,6 +1,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import { UserModel } from "./db.js";
+import { convertToObject } from "typescript";
 const app = express();
 const JWTSECRET = "TestSecret"; // Add .env
 app.use(express.json());
@@ -13,35 +14,54 @@ app.post("/api/v1/signup", async (req, res) => {
   const response = await UserModel.findOne({
     username,
   });
+  try {
+    if (response) {
+      return res.status(409).json({
+        message: "User already exists",
+      });
+    }
 
-  if (response) {
-    res.status(403).json({
-      message: "User already exists",
-    });
-  } else {
     await UserModel.create({
-      username: username,
-      password: password,
+      username,
+      password,
+    });
+
+    return res.status(201).json({
+      message: "User created successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Internal server error",
     });
   }
 });
 
 app.post("/api/v1/signin", async (req, res) => {
-  const username = req.body.usernmae;
+  const username = req.body.username;
   const password = req.body.password;
 
-  const response = await UserModel.find({
+  const existingUser = await UserModel.findOne({
     username,
+    password
   });
 
-  if (response) {
-    res.json({
-      message: "Please signup!",
+  if (!existingUser) {
+     return res.status(403).json({
+      message: "Incorrect Credentials!",
     });
-  } else {
-    //     jwt.sign({ id: _id }, JWTSECRET);
-    //     res.json({});
   }
+
+  const token = jwt.sign(
+    {
+      id: existingUser._id,
+    },
+    JWTSECRET
+  );
+
+  res.json({
+    token,
+  });
 });
 
 app.get("/api/v1/content", (req, res) => {});
@@ -49,3 +69,5 @@ app.get("/api/v1/content", (req, res) => {});
 app.delete("/api/v1/content", (req, res) => {});
 
 app.get("/api/v1/brain/:shareLink", (req, res) => {});
+
+app.listen(3000);
