@@ -1,6 +1,8 @@
-import mongoose, { model, Schema } from "mongoose";
+import mongoose, { model, Schema, Types } from "mongoose";
 
-mongoose.connect("mongodb+srv://jayvaidya30:mivuqizBVpvXxegM@cluster0.86xlhas.mongodb.net/SecondBrain"); // test url
+mongoose.connect(
+  "mongodb+srv://jayvaidya30:mivuqizBVpvXxegM@cluster0.86xlhas.mongodb.net/SecondBrain"
+); // test url
 
 const UserSchema = new Schema({
   username: { type: String, unique: true },
@@ -8,3 +10,12 @@ const UserSchema = new Schema({
 });
 
 export const UserModel = model("User", UserSchema);
+
+const ContentSchema = new Schema({
+  title: String,
+  link: String,
+  tags: [{ type: mongoose.Types.ObjectId, ref: "Tag" }],
+  userId: { type: mongoose.Types.ObjectId, ref: "User", require: true },
+});
+
+export const ContenModel = model("Conten", ContentSchema);

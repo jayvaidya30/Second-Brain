@@ -1,9 +1,9 @@
 import express from "express";
 import jwt from "jsonwebtoken";
-import { UserModel } from "./db.js";
-import { convertToObject } from "typescript";
+import { ContenModel, UserModel } from "./db.js";
+import { JWTSECRET } from "./config.js"; // Add .env
+import { userMiddleware } from "./middleware.js";
 const app = express();
-const JWTSECRET = "TestSecret"; // Add .env
 app.use(express.json());
 
 app.post("/api/v1/signup", async (req, res) => {
@@ -43,11 +43,11 @@ app.post("/api/v1/signin", async (req, res) => {
 
   const existingUser = await UserModel.findOne({
     username,
-    password
+    password,
   });
 
   if (!existingUser) {
-     return res.status(403).json({
+    return res.status(403).json({
       message: "Incorrect Credentials!",
     });
   }
@@ -64,7 +64,24 @@ app.post("/api/v1/signin", async (req, res) => {
   });
 });
 
-app.get("/api/v1/content", (req, res) => {});
+app.post("/api/v1/content", userMiddleware, async (req, res) => {
+  const link = req.body.link;
+  const type = req.body.type;
+  //tags
+
+  await ContenModel.create({
+    link,
+    type,
+    //@ts-ignore
+    userId: req.userId,
+    tags: []
+
+  });
+
+  return res.json({
+    messsage: "Content added!"
+  })
+});
 
 app.delete("/api/v1/content", (req, res) => {});
 
