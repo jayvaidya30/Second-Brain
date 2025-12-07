@@ -4,8 +4,10 @@ import { ContenModel, LinkModel, UserModel } from "./db.js";
 import { JWTSECRET } from "./config.js"; // Add .env
 import { userMiddleware } from "./middleware.js";
 import { random } from "./utils.js";
+import cors from "cors";
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.post("/api/v1/signup", async (req, res) => {
   //Add zod validation, hash possword
@@ -68,11 +70,13 @@ app.post("/api/v1/signin", async (req, res) => {
 app.post("/api/v1/content", userMiddleware, async (req, res) => {
   const link = req.body.link;
   const type = req.body.type;
+  const title = req.body.title;
   //tags
 
   await ContenModel.create({
     link,
     type,
+    title,
     //@ts-ignore
     userId: req.userId,
     tags: [],
